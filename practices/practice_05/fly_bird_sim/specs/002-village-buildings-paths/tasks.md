@@ -28,7 +28,7 @@ description: "Task list for feature 002: Village Buildings and Field Paths"
 
 **Purpose**: Branch and clean baseline before any edits
 
-- [ ] T001 Create feature branch `feat/village-buildings-paths` from the current HEAD (`git checkout -b feat/village-buildings-paths`) per constitution principle V. Cross-feature note: feature 001 (pause menu) also edits `src/main.c` `app_render()` and `CMakeLists.txt` — branch from `feat/pause-audio-menu` if it is already merged, otherwise plan to rebase whichever feature lands second
+- [x] T001 Create feature branch `feat/village-buildings-paths` from the current HEAD (`git checkout -b feat/village-buildings-paths`) per constitution principle V — deviation: implemented on `practice_5` per user direction (work in this branch only; feature 001 is already merged here, so the cross-feature ordering note is satisfied). Cross-feature note: feature 001 (pause menu) also edits `src/main.c` `app_render()` and `CMakeLists.txt` — branch from `feat/pause-audio-menu` if it is already merged, otherwise plan to rebase whichever feature lands second
 
 ---
 
@@ -38,9 +38,9 @@ description: "Task list for feature 002: Village Buildings and Field Paths"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Create `src/village.h` with the public API per `specs/002-village-buildings-paths/contracts/village-module.md`: `int village_generate_mesh(struct vec3 center_pos, struct tri3d *tris, int max_tris);` — includes `math3d.h`; module owns settlement scenery only (constitution principle V)
-- [ ] T003 [P] Implement the lattice skeleton in `src/village.c` and register it in the build: `village_generate_mesh()` iterates 96 m integer lattice cells (snapped from `center_pos`, same loop pattern as `scenery_generate_mesh()` in `src/terrain.c`), with a local static integer hash of (ix, iz) in the same family as terrain's `hash_coord()`; returns 0 (empty world) for now; add `src/village.c` to the `add_executable(sdl3_app ...)` source list in `CMakeLists.txt`
-- [ ] T004 [P] Wire the call site in `app_render()` in `src/main.c` per the contract's integration snippet, submitted between the river and scenery batches: `int village_count = village_generate_mesh(app->bird.pos, app->static_tris, STATIC_MESH_TRIS); render_draw_triangles(&app->r_ctx, app->static_tris, village_count, NULL);`
+- [x] T002 Create `src/village.h` with the public API per `specs/002-village-buildings-paths/contracts/village-module.md`: `int village_generate_mesh(struct vec3 center_pos, struct tri3d *tris, int max_tris);` — includes `math3d.h`; module owns settlement scenery only (constitution principle V)
+- [x] T003 [P] Implement the lattice skeleton in `src/village.c` and register it in the build: `village_generate_mesh()` iterates 96 m integer lattice cells (snapped from `center_pos`, same loop pattern as `scenery_generate_mesh()` in `src/terrain.c`), with a local static integer hash of (ix, iz) in the same family as terrain's `hash_coord()`; returns 0 (empty world) for now; add `src/village.c` to the `add_executable(sdl3_app ...)` source list in `CMakeLists.txt`
+- [x] T004 [P] Wire the call site in `app_render()` in `src/main.c` per the contract's integration snippet, submitted between the river and scenery batches: `int village_count = village_generate_mesh(app->bird.pos, app->static_tris, STATIC_MESH_TRIS); render_draw_triangles(&app->r_ctx, app->static_tris, village_count, NULL);`
 
 **Checkpoint**: Foundation ready — `cmake --build build` is warning-free and the app runs exactly as before (village count 0, no visual change)
 

@@ -18,5 +18,6 @@ add_executable(sdl3_app
 	src/ring.c
 	src/audio.c
 	src/menu.c
+	src/village.c
 )
 target_link_libraries(sdl3_app PRIVATE SDL3::SDL3 m)

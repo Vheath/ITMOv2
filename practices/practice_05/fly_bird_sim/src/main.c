@@ -12,6 +12,7 @@
 #include "render3d.h"
 #include "ring.h"
 #include "terrain.h"
+#include "village.h"
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
@@ -161,19 +162,25 @@ static void app_render(struct app_context *app)
 				    app->static_tris, STATIC_MESH_TRIS);
 	render_draw_triangles(&app->r_ctx, app->static_tris, river_count, NULL);
 
-	/* 3. Generate & submit scenery (pine trees & clouds) */
+	/* 3. Generate & submit village clusters (buildings + paths) */
+	int village_count = village_generate_mesh(
+		app->bird.pos, app->static_tris, STATIC_MESH_TRIS);
+	render_draw_triangles(&app->r_ctx, app->static_tris, village_count,
+			      NULL);
+
+	/* 4. Generate & submit scenery (pine trees & clouds) */
 	int scenery_count =
 		scenery_generate_mesh(app->bird.pos, app->elapsed_time,
 				      app->static_tris, STATIC_MESH_TRIS);
 	render_draw_triangles(&app->r_ctx, app->static_tris, scenery_count,
 			      NULL);
 
-	/* 4. Generate & submit golden rings mesh */
+	/* 5. Generate & submit golden rings mesh */
 	int ring_count = ring_generate_mesh(&app->rings, app->static_tris,
 					    STATIC_MESH_TRIS);
 	render_draw_triangles(&app->r_ctx, app->static_tris, ring_count, NULL);
 
-	/* 5. Generate & submit animated bird mesh */
+	/* 6. Generate & submit animated bird mesh */
 	app->bird_tri_count =
 		bird_generate_mesh(&app->bird, app->bird_tris, BIRD_MAX_TRIS);
 
