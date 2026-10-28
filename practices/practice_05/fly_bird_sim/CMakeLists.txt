@@ -17,5 +17,6 @@ add_executable(sdl3_app
 	src/terrain.c
 	src/ring.c
 	src/audio.c
+	src/menu.c
 )
 target_link_libraries(sdl3_app PRIVATE SDL3::SDL3 m)

@@ -8,6 +8,7 @@
 #include "bird.h"
 #include "camera.h"
 #include "math3d.h"
+#include "menu.h"
 #include "render3d.h"
 #include "ring.h"
 #include "terrain.h"
@@ -27,6 +28,7 @@ struct app_context {
 	struct bird bird;
 	struct terrain terrain;
 	struct ring_manager rings;
+	struct pause_menu menu;
 
 	struct tri3d *static_tris;
 	int static_tri_count;
@@ -283,6 +285,7 @@ int main(int argc, char *argv[])
 	bird_init(&app.bird);
 	terrain_init(&app.terrain);
 	ring_manager_init(&app.rings);
+	menu_init(&app.menu);
 
 	app.last_ticks = SDL_GetTicksNS();
 

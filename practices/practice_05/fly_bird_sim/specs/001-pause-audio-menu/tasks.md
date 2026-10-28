@@ -28,7 +28,7 @@ description: "Task list for feature 001: Pause Menu with Audio Volume Controls"
 
 **Purpose**: Branch and clean baseline before any edits
 
-- [ ] T001 Create feature branch `feat/pause-audio-menu` from the current HEAD (`git checkout -b feat/pause-audio-menu`) per constitution principle V
+- [x] T001 Create feature branch `feat/pause-audio-menu` from the current HEAD (`git checkout -b feat/pause-audio-menu`) per constitution principle V — deviation: implemented on `practice_5` per user direction (work in this branch only)
 
 ---
 
@@ -38,9 +38,9 @@ description: "Task list for feature 001: Pause Menu with Audio Volume Controls"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Create `src/menu.h` with `struct pause_menu` and the public API per `specs/001-pause-audio-menu/contracts/menu-module.md`: `menu_init`, `menu_is_open`, `menu_toggle`, `menu_handle_key`, `menu_volume`, `menu_wants_exit`, `menu_render`. Struct fields with data-model constraints: `open` (boolean), `selected` (row index, 0..2), `volume` (float, 0.0..1.0), `wants_exit` (boolean, one-shot)
-- [ ] T003 [P] Implement the state core in `src/menu.c` and register it in the build: `menu_init` (zeroes state; volume = 1.0; row 0 selected; closed), `menu_is_open`, `menu_toggle` (flips `open` exactly once per call), `menu_volume`, `menu_wants_exit`; add `src/menu.c` to the `add_executable(sdl3_app ...)` source list in `CMakeLists.txt`
-- [ ] T004 [P] Wire the module into the app in `src/main.c`: add `#include "menu.h"`, add `struct pause_menu menu;` to `struct app_context`, call `menu_init(&app.menu)` in `main()` after `ring_manager_init(&app.rings)`
+- [x] T002 Create `src/menu.h` with `struct pause_menu` and the public API per `specs/001-pause-audio-menu/contracts/menu-module.md`: `menu_init`, `menu_is_open`, `menu_toggle`, `menu_handle_key`, `menu_volume`, `menu_wants_exit`, `menu_render`. Struct fields with data-model constraints: `open` (boolean), `selected` (row index, 0..2), `volume` (float, 0.0..1.0), `wants_exit` (boolean, one-shot)
+- [x] T003 [P] Implement the state core in `src/menu.c` and register it in the build: `menu_init` (zeroes state; volume = 1.0; row 0 selected; closed), `menu_is_open`, `menu_toggle` (flips `open` exactly once per call), `menu_volume`, `menu_wants_exit`; add `src/menu.c` to the `add_executable(sdl3_app ...)` source list in `CMakeLists.txt`
+- [x] T004 [P] Wire the module into the app in `src/main.c`: add `#include "menu.h"`, add `struct pause_menu menu;` to `struct app_context`, call `menu_init(&app.menu)` in `main()` after `ring_manager_init(&app.rings)`
 
 **Checkpoint**: Foundation ready — `cmake --build build` is warning-free and the app runs exactly as before with the menu module compiled in but inert
 
