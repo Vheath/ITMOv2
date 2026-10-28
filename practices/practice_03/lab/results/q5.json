@@ -1,0 +1,45 @@
+{
+  "request": {
+    "model": "itmo-local",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ты помощник по учебному проекту. Используй только переданный контекст.\nНе выдумывай CI, зависимости, функции или настройки.\nЕсли данных нет, напиши «В предоставленных материалах нет ответа».\nФормат: короткий ответ, затем основание из контекста.\n\n"
+      },
+      {
+        "role": "user",
+        "content": "Контекст репозитория:\n--- File: README.md ---\n# Notify Mini\nУчебный сервис подписки. Подписчики хранятся в памяти процесса.\nВ service.py функция subscribe добавляет непустое имя в множество.\nПовторное добавление имени не создаёт дубликат.\n\nПроверка: make test.\nЗависимости: стандартная библиотека Python 3.10+.\n\n\n\n--- File: Makefile ---\n.PHONY: test\ntest:\n\tpython3 -m unittest -v\n\n\n\n--- File: service.py ---\nsubscribers = set()\n\n\ndef subscribe(name):\n    if not name.strip():\n        raise ValueError(\"empty name\")\n    subscribers.add(name.strip())\n    return {\"subscribed\": True}\n\n\n\n--- File: test_service.py ---\nimport unittest\nfrom service import subscribe, subscribers\n\n\nclass SubscribeTest(unittest.TestCase):\n    def setUp(self):\n        subscribers.clear()\n\n    def test_subscribe(self):\n        self.assertEqual(subscribe(\"Ann\"), {\"subscribed\": True})\n        self.assertEqual(subscribers, {\"Ann\"})\n\n    def test_empty(self):\n        with self.assertRaises(ValueError):\n            subscribe(\" \")\n\n    def test_duplicate(self):\n        subscribe(\"Ann\")\n        subscribe(\"Ann\")\n        self.assertEqual(len(subscribers), 1)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\n\n\nВопрос:\nСохраняются ли подписки после перезапуска процесса? Подтверди кодом."
+      }
+    ],
+    "stream": false,
+    "think": false,
+    "options": {
+      "temperature": 0.2,
+      "seed": 42,
+      "num_ctx": 4096,
+      "num_predict": 512
+    }
+  },
+  "response": {
+    "model": "itmo-local",
+    "created_at": "2026-10-06T18:09:49.468550332Z",
+    "message": {
+      "role": "assistant",
+      "content": "Нет, не сохраняются подписки после перезапуска процесса.\n\n**Основание из контекста:** В `test_service.py` в методе `setUp()` вызывается команда `.clear()`, которая очищает множество `subscribers`. Это означает, что при каждом новом запуске скрипта начинается с пустого множества и новые подписки добавляются заново (в данном случае только если имя не является пустым), а старые данные стираются."
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 15814942151,
+    "load_duration": 838864055,
+    "prompt_eval_count": 401,
+    "prompt_eval_duration": 6459432000,
+    "eval_count": 92,
+    "eval_duration": 8507226000
+  },
+  "wall_seconds": 15.817158191999624,
+  "load_seconds": 0.838864055,
+  "total_seconds": 15.814942151,
+  "eval_count": 92,
+  "prompt_eval_count": 401,
+  "decode_tokens_per_second": 10.81433595392905
+}
