@@ -37,6 +37,11 @@
 #define VILLAGE_ROOF_RISE 1.5f
 #define VILLAGE_MAX_BUILDINGS 4
 
+/* Field paths (research.md D5) */
+#define VILLAGE_PATH_WIDTH 2.2f
+#define VILLAGE_PATH_STEP 8.0f
+#define VILLAGE_PATH_LIFT 0.08f
+
 /*
  * All faces are wound with their cross-product normal pointing INTO
  * the solid: this pipeline culls triangles whose winding normal
@@ -92,6 +97,7 @@ static const struct color_rgb village_roof[3] = {
 
 static const struct color_rgb village_door_col = {0.16f, 0.11f, 0.07f, 1.0f};
 static const struct color_rgb village_window_col = {0.90f, 0.86f, 0.66f, 1.0f};
+static const struct color_rgb village_path_col = {0.62f, 0.52f, 0.38f, 1.0f};
 
 /*
  * Integer hash of (ix, iz) in the same family as terrain's
@@ -205,6 +211,43 @@ static bool village_derive_building(uint32_t hb, float hub_x, float hub_z,
 	return true;
 }
 
+/* Door point: centre of the door face, pushed off the wall */
+static void village_door_point(const struct village_bld *b, float *dx,
+			       float *dz)
+{
+	float off = b->hz + 0.6f;
+
+	*dx = b->x - sinf(b->yaw) * off;
+	*dz = b->z + cosf(b->yaw) * off;
+}
+
+/*
+ * Validates the door-to-hub path (research.md D5): straight line,
+ * tessellated every ~8 m, no vertex inside the corridor margin
+ * (FR-006). Uses the same tessellation the emitter applies, so
+ * what is checked here is exactly what gets drawn.
+ */
+static bool village_path_ok(const struct village_bld *b, float hub_x,
+			    float hub_z)
+{
+	float dx, dz;
+
+	village_door_point(b, &dx, &dz);
+	float vx = hub_x - dx;
+	float vz = hub_z - dz;
+	float dist = sqrtf(vx * vx + vz * vz);
+	int segs = (int)(dist / VILLAGE_PATH_STEP) + 1;
+
+	for (int i = 0; i <= segs; i++) {
+		float t = (float)i / (float)segs;
+
+		if (village_corridor_dist(dx + vx * t, dz + vz * t) <
+		    VILLAGE_CORRIDOR_MARGIN)
+			return false;
+	}
+	return true;
+}
+
 /*
  * Derives the cluster of one lattice cell: threshold check, hub
  * seed validation (candidate ladder), then 2-4 hash-derived
@@ -258,6 +301,13 @@ static void village_derive_cluster(int ix, int iz, struct village_cluster *cl)
 
 			ok = village_derive_building(hk, cl->hub_x, cl->hub_z,
 						     ang, &bl);
+			/* A building survives only with a legally
+			 * placeable path: every surviving building is
+			 * connected (FR-004) and no geometry sits in
+			 * the corridor (FR-006).
+			 */
+			if (ok)
+				ok = village_path_ok(&bl, cl->hub_x, cl->hub_z);
 		}
 		if (ok)
 			cl->blds[cl->nblds++] = bl;
@@ -366,6 +416,74 @@ static void village_emit_building(const struct village_bld *b,
 	village_emit_decals(&f, b, tris, count);
 }
 
+/*
+ * Emits the dirt path from the building's door to the cluster hub
+ * (research.md D5): 2.2 m wide flat strips, straight line,
+ * tessellated every ~8 m, every vertex seated on the terrain plus
+ * a 0.08 m anti-z-fighting lift. Two opaque triangles per segment,
+ * emitted whole or not at all (FR-011).
+ */
+static void village_emit_path(const struct village_bld *b, float hub_x,
+			      float hub_z, struct tri3d *tris, int max_tris,
+			      int *count)
+{
+	float dx, dz;
+
+	village_door_point(b, &dx, &dz);
+	float vx = hub_x - dx;
+	float vz = hub_z - dz;
+	float dist = sqrtf(vx * vx + vz * vz);
+
+	if (dist < 0.001f)
+		return;
+
+	int segs = (int)(dist / VILLAGE_PATH_STEP) + 1;
+	float hw = VILLAGE_PATH_WIDTH * 0.5f;
+
+	for (int i = 0; i < segs; i++) {
+		if (*count + 2 > max_tris)
+			return;
+
+		float t0 = (float)i / (float)segs;
+		float t1 = (float)(i + 1) / (float)segs;
+		float ax = dx + vx * t0;
+		float az = dz + vz * t0;
+		float bx = dx + vx * t1;
+		float bz = dz + vz * t1;
+
+		/* Strip direction and its perpendicular */
+		float ddx = bx - ax;
+		float ddz = bz - az;
+		float dl = sqrtf(ddx * ddx + ddz * ddz);
+
+		if (dl < 0.0001f)
+			continue;
+
+		float px = (ddz / dl) * hw;
+		float pz = -(ddx / dl) * hw;
+
+		/* Every quad corner samples the terrain beneath it,
+		 * lifted 0.08 m: the strip stays glued to rolling
+		 * ground with no clipping or hovering (V3).
+		 */
+		float ay0 = terrain_get_height(ax - px, az - pz) +
+			    VILLAGE_PATH_LIFT;
+		float ay1 = terrain_get_height(ax + px, az + pz) +
+			    VILLAGE_PATH_LIFT;
+		float by1 = terrain_get_height(bx + px, bz + pz) +
+			    VILLAGE_PATH_LIFT;
+		float by0 = terrain_get_height(bx - px, bz - pz) +
+			    VILLAGE_PATH_LIFT;
+
+		/* Terrain-style downward winding: visible from above */
+		village_quad(tris, count, vec3_create(ax - px, ay0, az - pz),
+			     vec3_create(ax + px, ay1, az + pz),
+			     vec3_create(bx + px, by1, bz + pz),
+			     vec3_create(bx - px, by0, bz - pz),
+			     village_path_col);
+	}
+}
+
 int village_generate_mesh(struct vec3 center_pos, struct tri3d *tris,
 			  int max_tris)
 {
@@ -386,9 +504,13 @@ int village_generate_mesh(struct vec3 center_pos, struct tri3d *tris,
 			if (cl.nblds < 2)
 				continue;
 
-			for (int b = 0; b < cl.nblds; b++)
+			for (int b = 0; b < cl.nblds; b++) {
 				village_emit_building(&cl.blds[b], tris,
 						      max_tris, &count);
+				village_emit_path(&cl.blds[b], cl.hub_x,
+						  cl.hub_z, tris, max_tris,
+						  &count);
+			}
 		}
 	}
 

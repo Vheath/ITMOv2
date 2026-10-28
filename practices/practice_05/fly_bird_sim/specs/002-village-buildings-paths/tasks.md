@@ -70,8 +70,8 @@ description: "Task list for feature 002: Village Buildings and Field Paths"
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Implement star-topology path derivation in `src/village.c` per data-model.md and research.md D5: one path per building from its door position to the cluster hub; "width | 2.2 m"; "straight line, tessellated every ~8 m"; each interior vertex samples `terrain_get_height()` and lifts the strip by "+ 0.08 m" (same anti-z-fighting trick as the flower patches); validate that no path vertex falls inside the 40 m corridor margin (FR-006); every surviving building gets a path (FR-004)
-- [ ] T009 [US2] Implement path segment emission with the segment budget guard in `src/village.c`: "triangles | 2 per tessellation segment. Packed-earth brown, opaque (D7)" — alpha = 1.0; the same `count + segment_tris > max_tris` whole-unit guard as buildings; skip segments that do not fit, never emit partial geometry
+- [x] T008 [US2] Implement star-topology path derivation in `src/village.c` per data-model.md and research.md D5: one path per building from its door position to the cluster hub; "width | 2.2 m"; "straight line, tessellated every ~8 m"; each interior vertex samples `terrain_get_height()` and lifts the strip by "+ 0.08 m" (same anti-z-fighting trick as the flower patches); validate that no path vertex falls inside the 40 m corridor margin (FR-006); every surviving building gets a path (FR-004) — the path check is folded into building survival, so no unconnected building can exist
+- [x] T009 [US2] Implement path segment emission with the segment budget guard in `src/village.c`: "triangles | 2 per tessellation segment. Packed-earth brown, opaque (D7)" — alpha = 1.0; the same `count + segment_tris > max_tris` whole-unit guard as buildings; skip segments that do not fit, never emit partial geometry — each quad corner samples the terrain beneath it (better gluing than centreline-only sampling, caught by the validation probe)
 
 **Checkpoint**: User Stories 1 and 2 both functional (quickstart V3; V4 revisits now include identical paths)
 
