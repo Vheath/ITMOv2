@@ -87,8 +87,8 @@ description: "Task list for feature 001: Pause Menu with Audio Volume Controls"
 
 ### Implementation for User Story 3
 
-- [ ] T012 [P] [US3] Activate the EXIT action in `menu_handle_key()` in `src/menu.c`: Enter on row 2 (EXIT) sets `wants_exit = true` (one-shot flag; the menu module performs no teardown itself)
-- [ ] T013 [P] [US3] Extend the main loop exit condition in `src/main.c`: `while (app.running && !menu_wants_exit(&app->menu)) { ... }` — shutdown flows through the existing reverse-order cleanup chain (`free` buffers → `render_context_destroy` → `audio_engine_destroy` → destroy window/renderer → `SDL_Quit()`), unchanged
+- [x] T012 [P] [US3] Activate the EXIT action in `menu_handle_key()` in `src/menu.c`: Enter on row 2 (EXIT) sets `wants_exit = true` (one-shot flag; the menu module performs no teardown itself)
+- [x] T013 [P] [US3] Extend the main loop exit condition in `src/main.c`: `while (app.running && !menu_wants_exit(&app->menu)) { ... }` — shutdown flows through the existing reverse-order cleanup chain (`free` buffers → `render_context_destroy` → `audio_engine_destroy` → destroy window/renderer → `SDL_Quit()`), unchanged
 
 **Checkpoint**: All user stories independently functional (quickstart P1–P8 minus volume already covered)
 

@@ -45,11 +45,12 @@ void menu_handle_key(struct pause_menu *m, SDL_Keycode key)
 		break;
 	case SDLK_RETURN:
 	case SDLK_KP_ENTER:
-		/* Only CONTINUE acts for now; VOLUME and EXIT gain
-		 * behaviour in later user stories.
-		 */
 		if (m->selected == MENU_ROW_CONTINUE)
 			m->open = false;
+		else if (m->selected == MENU_ROW_EXIT)
+			m->wants_exit = true; /* one-shot; teardown is the
+					       * caller's job (FR-008)
+					       */
 		break;
 	case SDLK_ESCAPE:
 		m->open = !m->open;

@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 
 	app.last_ticks = SDL_GetTicksNS();
 
-	while (app.running) {
+	while (app.running && !menu_wants_exit(&app.menu)) {
 		uint64_t current_ticks = SDL_GetTicksNS();
 		float dt =
 			(float)(current_ticks - app.last_ticks) / 1000000000.0f;
