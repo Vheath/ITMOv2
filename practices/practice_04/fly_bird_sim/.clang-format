@@ -1,0 +1,14 @@
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 8
+TabWidth: 8
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+ColumnLimit: 80
+IndentCaseLabels: false
+PointerAlignment: Right
+SpacesBeforeTrailingComments: 1
+SpaceAfterCStyleCast: false
+ContinuationIndentWidth: 8
