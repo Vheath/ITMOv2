@@ -54,10 +54,17 @@ static void app_handle_events(struct app_context *app)
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_EVENT_QUIT) {
 			app->running = false;
-		} else if (event.type == SDL_EVENT_KEY_DOWN) {
-			if (event.key.key == SDLK_ESCAPE)
-				app->running = false;
-			else if (event.key.key == SDLK_R && app->game_over) {
+		} else if (event.type == SDL_EVENT_KEY_DOWN &&
+			   !event.key.repeat) {
+			if (event.key.key == SDLK_ESCAPE) {
+				menu_toggle(&app->menu);
+				/* Fade the wind loop out while paused */
+				if (menu_is_open(&app->menu))
+					audio_engine_set_speed(&app->audio,
+							       0.0f, false);
+			} else if (menu_is_open(&app->menu)) {
+				menu_handle_key(&app->menu, event.key.key);
+			} else if (event.key.key == SDLK_R && app->game_over) {
 				bird_init(&app->bird);
 				ring_manager_init(&app->rings);
 				camera_init(&app->cam);
@@ -86,7 +93,10 @@ static void app_handle_events(struct app_context *app)
 
 static void app_update(struct app_context *app, float dt)
 {
-	if (app->game_over)
+	/* Freeze the whole simulation while paused: elapsed_time, score,
+	 * bird state, and animation clocks must not advance.
+	 */
+	if (app->game_over || menu_is_open(&app->menu))
 		return;
 
 	bird_update(&app->bird, dt, app->input_pitch, app->input_roll,
@@ -234,6 +244,10 @@ static void app_render(struct app_context *app)
 				    (float)h * 0.4f + 55.0f,
 				    "PRESS [R] TO SOAR AGAIN");
 	}
+
+	/* Pause menu overlay sits above the game-over banner */
+	if (menu_is_open(&app->menu))
+		menu_render(&app->menu, app->renderer, w, h);
 
 	SDL_RenderPresent(app->renderer);
 }

@@ -1,4 +1,5 @@
 #include "menu.h"
+#include <stdio.h>
 
 void menu_init(struct pause_menu *m)
 {
@@ -18,13 +19,30 @@ void menu_toggle(struct pause_menu *m)
 	m->open = !m->open;
 }
 
-/*
- * Placeholder until US1: consumes one discrete menu key, no action yet.
- */
 void menu_handle_key(struct pause_menu *m, SDL_Keycode key)
 {
-	(void)m;
-	(void)key;
+	switch (key) {
+	case SDLK_UP:
+		m->selected =
+			(m->selected + MENU_ROW_COUNT - 1) % MENU_ROW_COUNT;
+		break;
+	case SDLK_DOWN:
+		m->selected = (m->selected + 1) % MENU_ROW_COUNT;
+		break;
+	case SDLK_RETURN:
+	case SDLK_KP_ENTER:
+		/* Only CONTINUE acts for now; VOLUME and EXIT gain
+		 * behaviour in later user stories.
+		 */
+		if (m->selected == MENU_ROW_CONTINUE)
+			m->open = false;
+		break;
+	case SDLK_ESCAPE:
+		m->open = !m->open;
+		break;
+	default:
+		break;
+	}
 }
 
 float menu_volume(const struct pause_menu *m)
@@ -37,15 +55,38 @@ bool menu_wants_exit(const struct pause_menu *m)
 	return m->wants_exit;
 }
 
-/*
- * Placeholder until US1: the overlay draws nothing while the module
- * skeleton is inert.
- */
 void menu_render(const struct pause_menu *m, SDL_Renderer *renderer,
 		 int window_w, int window_h)
 {
-	(void)m;
-	(void)renderer;
-	(void)window_w;
-	(void)window_h;
+	if (!m->open)
+		return;
+
+	int percent = (int)(m->volume * 100.0f + 0.5f);
+	char volume_row[24];
+
+	snprintf(volume_row, sizeof(volume_row), "VOLUME: %d%%", percent);
+
+	const char *rows[MENU_ROW_COUNT] = {"CONTINUE", volume_row, "EXIT"};
+
+	/* Centered panel, same blend mode as the game-over banner */
+	float panel_w = 280.0f;
+	float panel_h = 130.0f;
+	float panel_x = ((float)window_w - panel_w) * 0.5f;
+	float panel_y = ((float)window_h - panel_h) * 0.5f;
+	SDL_FRect panel = {panel_x, panel_y, panel_w, panel_h};
+
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawColor(renderer, 15, 15, 25, 210);
+	SDL_RenderFillRect(renderer, &panel);
+
+	for (int i = 0; i < MENU_ROW_COUNT; i++) {
+		if (i == m->selected)
+			SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
+		else
+			SDL_SetRenderDrawColor(renderer, 230, 230, 230, 255);
+
+		SDL_RenderDebugText(renderer, panel_x + 40.0f,
+				    panel_y + 40.0f + (float)i * 30.0f,
+				    rows[i]);
+	}
 }
