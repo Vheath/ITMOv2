@@ -11,10 +11,10 @@
 #define MENU_ROW_COUNT 3
 
 struct pause_menu {
-	bool open;		/* true = session paused, overlay visible */
-	int selected;		/* row index, 0..MENU_ROW_COUNT - 1 */
-	float volume;		/* master level, 0.0..1.0 */
-	bool wants_exit;	/* one-shot quit request from the EXIT row */
+	bool open;	 /* true = session paused, overlay visible */
+	int selected;	 /* row index, 0..MENU_ROW_COUNT - 1 */
+	float volume;	 /* master level, 0.0..1.0 */
+	bool wants_exit; /* one-shot quit request from the EXIT row */
 };
 
 void menu_init(struct pause_menu *m);
