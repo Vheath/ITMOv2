@@ -56,15 +56,15 @@ const COMMAND_TOOLS = new Set(["bash", "shell"])
 const DESTRUCTIVE_COMMANDS: readonly { name: string; test: RegExp }[] = [
 	{
 		name: "recursive rm against /, ~, $HOME or a bare wildcard",
-		test: /(?<!git )\brm\b[^;&|]*\b(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*(?<=[\s;&|("'])(?:\/|~|\$HOME|\*|\.\*|\.\.\/\*)(?=[\s;&|)"']|\*|$)/i,
+		test: /(?<!git )\brm\s+(?:[^;&|]*\s)?(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*(?<=[\s;&|("'])(?:\/|~|\$HOME|\*|\.\*|\.\.\/\*)(?=[\s;&|)"']|\*|$)/i,
 	},
 	{
 		name: "recursive rm with command-substituted targets",
-		test: /(?<!git )\brm\b[^;&|]*\b(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*\$\(/i,
+		test: /(?<!git )\brm\s+(?:[^;&|]*\s)?(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*\$\(/i,
 	},
 	{
 		name: "recursive rm against the .git directory",
-		test: /(?<!git )\brm\b[^;&|]*\b(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*(?<=[\s;&|("'])\.git(?=$|[\s;&|)"'\/])/i,
+		test: /(?<!git )\brm\s+(?:[^;&|]*\s)?(?:--recursive|-[a-z]*r[a-z]*)\b[^;&|]*(?<=[\s;&|("'])\.git(?=$|[\s;&|)"'\/])/i,
 	},
 	{ name: "filesystem mkfs", test: /\bmkfs(?:\.[a-z0-9]+)?\b/i },
 	{ name: "dd onto a raw device", test: /\bdd\b[^;&|]*\bof=\/dev\//i },
