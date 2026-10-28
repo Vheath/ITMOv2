@@ -71,9 +71,9 @@ description: "Task list for feature 001: Pause Menu with Audio Volume Controls"
 
 ### Implementation for User Story 2
 
-- [ ] T009 [P] [US2] Implement `audio_engine_set_volume()` in `src/audio.h` and `src/audio.c`: signature `void audio_engine_set_volume(struct audio_engine *ae, float volume);` — clamp to [0.0, 1.0], call `SDL_SetAudioStreamGain(ae->stream, volume)`, check the `bool` return and log failure text via `SDL_GetError()` (non-fatal); safe no-op when `ae->stream` is NULL (audio init failed)
-- [ ] T010 [US2] Add volume adjustment to `menu_handle_key()` in `src/menu.c`: Left/Right on row 1 (VOLUME) step `volume` by ±0.1 — "float, 0.0..1.0; adjusted in 0.1 steps, clamped at both ends — never negative, never > 1.0, no wrap-around"
-- [ ] T011 [US2] Apply the level after menu events in `src/main.c`: after event processing call `audio_engine_set_volume(&app->audio, menu_volume(&app->menu))` (idempotent — same value, no effect); called every frame or after menu key events per contracts/menu-module.md
+- [x] T009 [P] [US2] Implement `audio_engine_set_volume()` in `src/audio.h` and `src/audio.c`: signature `void audio_engine_set_volume(struct audio_engine *ae, float volume);` — clamp to [0.0, 1.0], call `SDL_SetAudioStreamGain(ae->stream, volume)`, check the `bool` return and log failure text via `SDL_GetError()` (non-fatal); safe no-op when `ae->stream` is NULL (audio init failed)
+- [x] T010 [US2] Add volume adjustment to `menu_handle_key()` in `src/menu.c`: Left/Right on row 1 (VOLUME) step `volume` by ±0.1 — "float, 0.0..1.0; adjusted in 0.1 steps, clamped at both ends — never negative, never > 1.0, no wrap-around"
+- [x] T011 [US2] Apply the level after menu events in `src/main.c`: after event processing call `audio_engine_set_volume(&app->audio, menu_volume(&app->menu))` (idempotent — same value, no effect); called every frame or after menu key events per contracts/menu-module.md
 
 **Checkpoint**: User Story 2 fully functional and testable independently (quickstart P3)
 

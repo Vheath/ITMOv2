@@ -38,6 +38,7 @@ void audio_engine_destroy(struct audio_engine *ae);
 
 void audio_engine_set_speed(struct audio_engine *ae, float speed,
 			    bool is_boosting);
+void audio_engine_set_volume(struct audio_engine *ae, float volume);
 void audio_engine_trigger_flap(struct audio_engine *ae, float strength);
 void audio_engine_trigger_ring(struct audio_engine *ae, int combo);
 void audio_engine_trigger_crash(struct audio_engine *ae);

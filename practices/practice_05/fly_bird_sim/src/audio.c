@@ -175,6 +175,24 @@ void audio_engine_set_speed(struct audio_engine *ae, float speed,
 	SDL_UnlockMutex(ae->lock);
 }
 
+void audio_engine_set_volume(struct audio_engine *ae, float volume)
+{
+	if (!ae->stream)
+		return;
+
+	if (volume < 0.0f)
+		volume = 0.0f;
+	if (volume > 1.0f)
+		volume = 1.0f;
+
+	/* Stream gain is applied downstream of the synthesis callback,
+	 * so the level takes effect immediately on playing sounds.
+	 */
+	if (!SDL_SetAudioStreamGain(ae->stream, volume))
+		SDL_Log("Warning: failed to set audio volume: %s",
+			SDL_GetError());
+}
+
 void audio_engine_trigger_flap(struct audio_engine *ae, float strength)
 {
 	SDL_LockMutex(ae->lock);

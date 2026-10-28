@@ -29,6 +29,20 @@ void menu_handle_key(struct pause_menu *m, SDL_Keycode key)
 	case SDLK_DOWN:
 		m->selected = (m->selected + 1) % MENU_ROW_COUNT;
 		break;
+	case SDLK_LEFT:
+		if (m->selected == MENU_ROW_VOLUME) {
+			m->volume -= 0.1f;
+			if (m->volume < 0.0f)
+				m->volume = 0.0f;
+		}
+		break;
+	case SDLK_RIGHT:
+		if (m->selected == MENU_ROW_VOLUME) {
+			m->volume += 0.1f;
+			if (m->volume > 1.0f)
+				m->volume = 1.0f;
+		}
+		break;
 	case SDLK_RETURN:
 	case SDLK_KP_ENTER:
 		/* Only CONTINUE acts for now; VOLUME and EXIT gain

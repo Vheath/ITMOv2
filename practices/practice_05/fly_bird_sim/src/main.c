@@ -313,6 +313,12 @@ int main(int argc, char *argv[])
 			dt = 0.05f;
 
 		app_handle_events(&app);
+
+		/* Idempotent per frame: same level, no effect; changes
+		 * made in the menu are audible immediately.
+		 */
+		audio_engine_set_volume(&app.audio, menu_volume(&app.menu));
+
 		app_update(&app, dt);
 		app_render(&app);
 
