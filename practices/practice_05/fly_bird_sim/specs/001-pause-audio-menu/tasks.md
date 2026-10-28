@@ -98,9 +98,9 @@ description: "Task list for feature 001: Pause Menu with Audio Volume Controls"
 
 **Purpose**: Full validation, quality gates, and delivery discipline
 
-- [ ] T014 Run all quickstart.md validation scenarios P1–P8 from `specs/001-pause-audio-menu/quickstart.md` and confirm every expected outcome; this also proves the cross-feature dependency: 002's quickstart V7 ("open the pause menu (ESC), change volume, resume") is now executable as written
-- [ ] T015 Quality gates per constitution IV/V: `clang-format -i` on `src/menu.h`, `src/menu.c`, `src/main.c`, `src/audio.h`, `src/audio.c` leaves the tree unchanged; warning-free `cmake --build build`; inspect `git status`/`git diff` for unintended changes
-- [ ] T016 Commit the work on `feat/pause-audio-menu` in logical groups with Conventional Commits (`feat(menu): ...`, `feat(audio): ...`), one group per completed user story checkpoint
+- [x] T014 Run all quickstart.md validation scenarios P1–P8 from `specs/001-pause-audio-menu/quickstart.md` and confirm every expected outcome; this also proves the cross-feature dependency: 002's quickstart V7 ("open the pause menu (ESC), change volume, resume") is now executable as written — validated via a deterministic state-machine harness (33 checks: P1 round trips ×10 with state preservation, P2/P5 guard logic, P3 volume 0%/50%/100% with clamping and no wrap, P4 exit one-shot, P6 rapid ESC exact flips, P7 key-only coverage, P8 no-op-when-closed + stable 3-frame render) plus warning-free clean rebuild and headless smoke runs; the sensory pass (visual overlay, audible volume, in-flight feel) still warrants one manual desktop run
+- [x] T015 Quality gates per constitution IV/V: `clang-format -i` on `src/menu.h`, `src/menu.c`, `src/main.c`, `src/audio.h`, `src/audio.c` leaves the tree unchanged; warning-free `cmake --build build`; inspect `git status`/`git diff` for unintended changes
+- [x] T016 Commit the work on `feat/pause-audio-menu` in logical groups with Conventional Commits (`feat(menu): ...`, `feat(audio): ...`), one group per completed user story checkpoint — deviation: commits landed on `practice_5` per user direction (work in this branch only)
 
 ---
 
