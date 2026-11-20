@@ -1,0 +1,156 @@
+{
+  "name": "7.2 issue classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "title"
+            },
+            {
+              "name": "body"
+            }
+          ]
+        }
+      },
+      "id": "9d3d8896-a280-49e6-93f2-b95552d75324",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ты — классификатор GitHub Issues для open-source проекта.\nОпредели ровно один тип обращения:\n- bug — что-то работает неправильно: есть шаги воспроизведения, ожидаемое и фактическое поведение, версия/окружение;\n- task — вопрос о существующем функционале, как что-то настроить или сделать;\n- feature — запрос новой возможности или улучшения;\n- unknown — описания недостаточно, обращение не по теме или смешивает несколько типов.\n\nВерни `type` и `confidence` — уверенность от 0 до 1.\nСтавь confidence < 0.8, если описание расплывчатое, короткое или допускает несколько трактовок.\n\nЗаголовок Issue:\n{{ $json.title }}\n\nОписание Issue:\n{{ $json.body || '(пусто)' }}",
+        "hasOutputParser": true
+      },
+      "id": "be4bab9d-1b74-4cf1-8052-36dbbd1e7067",
+      "name": "Classify Issue",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        688,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "mistralai/ministral-8b-2512",
+          "mode": "list",
+          "cachedResultName": "mistralai/ministral-8b-2512"
+        },
+        "options": {
+          "maxTokens": 200,
+          "temperature": 0
+        }
+      },
+      "id": "1bdf1310-50bd-4c5c-9635-f560f3d8c553",
+      "name": "Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        432
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "XUDQa34iGDxzZtHW",
+          "name": "OpenAI account 37"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"number\"\n    }\n  },\n  \"required\": [\n    \"type\",\n    \"confidence\"\n  ]\n}"
+      },
+      "id": "e5cebbe7-670f-433d-85cf-338730df80a4",
+      "name": "Issue Schema",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst raw = item.output ?? item;\n\nconst aliases = {\n  bug: 'bug',\n  defect: 'bug',\n  error: 'bug',\n  task: 'task',\n  question: 'task',\n  'how-to': 'task',\n  support: 'task',\n  feature: 'feature',\n  'feature-request': 'feature',\n  'feature_request': 'feature',\n  enhancement: 'feature',\n  unknown: 'unknown',\n  other: 'unknown',\n};\nconst key = String(raw.type ?? '').trim().toLowerCase();\nconst type = aliases[key] ?? 'unknown';\n\nlet confidence = Number(raw.confidence);\nif (!Number.isFinite(confidence)) confidence = 0;\nconfidence = Math.max(0, Math.min(1, confidence));\n\nreturn [{ json: { type, confidence } }];"
+      },
+      "id": "abdd4593-eb4f-474e-8311-0496c44c49c8",
+      "name": "Normalize classifier result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Classify Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Issue",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue Schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classify Issue",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Issue": {
+      "main": [
+        [
+          {
+            "node": "Normalize classifier result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2bc9592d-3d4c-46ab-89a9-04acbc1ea6fe",
+  "meta": {
+    "instanceId": "68dbbb4e8fa686c3fd4e9982ade6836edb66976f207553e7ac22df961581c78c"
+  },
+  "nodeGroups": [],
+  "id": "EJMCFRkY2P34FaYN",
+  "tags": []
+}
