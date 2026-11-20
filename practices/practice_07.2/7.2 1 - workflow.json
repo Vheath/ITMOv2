@@ -1,0 +1,978 @@
+{
+  "name": "7.2 1 - workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fee04b64-c659-5936-9186-d744f2293896",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "opened",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd9fd31a-9e0e-4317-bb7a-7d0b115959dd",
+      "name": "Is issue opened?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "processed_issues"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_id",
+              "keyValue": "={{ $json.body.issue.number }}"
+            }
+          ]
+        }
+      },
+      "id": "9bbc4f70-432c-42f5-ae58-c69120cbabd9",
+      "name": "Not processed yet?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "12046c9c-a4a9-54f8-ab49-41db659d2b3c",
+              "leftValue": "={{ $json.body.issue.author_association }}",
+              "rightValue": "NONE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4fc19b5e-5b40-4980-8101-f1a7bff54aa4",
+      "name": "First-time contributor?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"first-time-contributor\"]}",
+        "options": {}
+      },
+      "id": "674f2da9-22a8-4504-9f26-e8bb60c7315a",
+      "name": "Label first-time",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: 'Привет @' + $('GitHub Issue Webhook').first().json.body.issue.user.login + '! Спасибо за первый Issue в этом репозитории. Пожалуйста, посмотрите CONTRIBUTING.md перед отправкой PR: https://github.com/' + $('GitHub Issue Webhook').first().json.body.repository.owner.login + '/' + $('GitHub Issue Webhook').first().json.body.repository.name + '/blob/main/CONTRIBUTING.md' } }}",
+        "options": {}
+      },
+      "id": "a45f0070-a0a4-45ee-8b66-4d88c9d94eff",
+      "name": "Welcome comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1872,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EJMCFRkY2P34FaYN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EJMCFRkY2P34FaYN",
+          "cachedResultName": "P7.2 · Sub-workflow — Issue classifier"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $('GitHub Issue Webhook').first().json.body.issue.title }}",
+            "body": "={{ $('GitHub Issue Webhook').first().json.body.issue.body || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "20fa1712-e24e-4398-a342-ba3506cee8bc",
+      "name": "Classify Issue",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ea714065-531d-5d7b-93a7-0806af3d4adc",
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": 0.8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "73a87534-784d-434d-8193-a3ca2714d2a0",
+      "name": "Confidence OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2384,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9c463a8d-4c64-5d25-a831-089c2230102d",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "bug",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "bug"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7df2338e-c3e4-552b-bf16-20902fb6b6bb",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "task",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "task"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3e41473b-4d01-5153-a71a-44f18e7a4280",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "feature",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "feature"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "unknown"
+        }
+      },
+      "id": "a7430fd5-fb69-4d24-87a1-501dd4378cca",
+      "name": "Route by type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2640,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"bug\"]}",
+        "options": {}
+      },
+      "id": "fc03822e-929e-4530-941d-dbb28c15ff13",
+      "name": "Label bug",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        0
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"body\": \"Спасибо за репорт! Похоже на баг — добавили лейбл `bug` и передали в triage. Пожалуйста, приложите шаги воспроизведения, ожидаемое и фактическое поведение, версию и окружение.\"}",
+        "options": {}
+      },
+      "id": "dfc1ecc3-a747-424e-badd-4adba6b8ff9a",
+      "name": "Comment bug",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3168,
+        0
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"task\"]}",
+        "options": {}
+      },
+      "id": "c49d9bdf-81ad-4384-b91e-0afc584c873c",
+      "name": "Label task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"body\": \"Спасибо! Похоже на вопрос или задачу — добавили лейбл `task`. Если это вопрос, проверьте документацию; если нужна помощь команды, мы ответим здесь.\"}",
+        "options": {}
+      },
+      "id": "50ea1a98-efc0-46ab-a1c0-4fb2d1be68ee",
+      "name": "Comment task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3168,
+        160
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"feature-request\"]}",
+        "options": {}
+      },
+      "id": "10bb7808-7eeb-4c24-a345-109168cbc943",
+      "name": "Label feature",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        320
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"body\": \"Спасибо за идею! Добавили лейбл `feature-request`. Опишите, пожалуйста, сценарий использования и ожидаемое поведение.\"}",
+        "options": {}
+      },
+      "id": "2c50ae23-c56b-4a84-83c7-9b6990ab2b8c",
+      "name": "Comment feature",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3168,
+        320
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"needs-triage\"]}",
+        "options": {}
+      },
+      "id": "0c8a8252-6dab-446d-98bf-dbb7b1a76909",
+      "name": "Label needs-triage (low confidence)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        480
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GitHub Issue Webhook').first().json.body.repository.url}}/issues/{{ $('GitHub Issue Webhook').first().json.body.issue.number }}/labels\n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"labels\": [\"needs-triage\"]}",
+        "options": {}
+      },
+      "id": "dc0e161b-762c-4d34-b41e-ca9e05c6cc6f",
+      "name": "Label needs-triage (unknown type)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        640
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "processed_issues"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "issue_id": "={{ $('GitHub Issue Webhook').first().json.body.issue.number }}"
+          },
+          "matchingColumns": [
+            "issue_id"
+          ],
+          "schema": [
+            {
+              "id": "issue_id",
+              "displayName": "issue_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d6f99db9-a709-4852-b846-ed0b00d33434",
+      "name": "Mark as processed",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3440,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "owner": {
+          "__rl": true,
+          "value": "Vheath",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "avito_practice_tester",
+          "mode": "list",
+          "cachedResultName": "avito_practice_tester",
+          "cachedResultUrl": "https://github.com/Vheath/avito_practice_tester"
+        },
+        "events": [
+          "issues"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [
+        624,
+        304
+      ],
+      "id": "50bc3c8b-d2c9-4dd1-902a-15fa601048a7",
+      "name": "GitHub Issue Webhook",
+      "webhookId": "694db9b3-bc0b-4d74-8220-0353edb08564",
+      "credentials": {
+        "githubApi": {
+          "id": "iMwHX07QhPr1zd7b",
+          "name": "GitHub account 52"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Is issue opened?": {
+      "main": [
+        [
+          {
+            "node": "Not processed yet?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not processed yet?": {
+      "main": [
+        [
+          {
+            "node": "First-time contributor?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First-time contributor?": {
+      "main": [
+        [
+          {
+            "node": "Label first-time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classify Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label first-time": {
+      "main": [
+        [
+          {
+            "node": "Welcome comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome comment": {
+      "main": [
+        [
+          {
+            "node": "Classify Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Issue": {
+      "main": [
+        [
+          {
+            "node": "Confidence OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confidence OK?": {
+      "main": [
+        [
+          {
+            "node": "Route by type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label needs-triage (low confidence)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by type": {
+      "main": [
+        [
+          {
+            "node": "Label bug",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label feature",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label needs-triage (unknown type)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label bug": {
+      "main": [
+        [
+          {
+            "node": "Comment bug",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment bug": {
+      "main": [
+        [
+          {
+            "node": "Mark as processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label task": {
+      "main": [
+        [
+          {
+            "node": "Comment task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment task": {
+      "main": [
+        [
+          {
+            "node": "Mark as processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label feature": {
+      "main": [
+        [
+          {
+            "node": "Comment feature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment feature": {
+      "main": [
+        [
+          {
+            "node": "Mark as processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label needs-triage (low confidence)": {
+      "main": [
+        [
+          {
+            "node": "Mark as processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label needs-triage (unknown type)": {
+      "main": [
+        [
+          {
+            "node": "Mark as processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub Issue Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is issue opened?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d66d2e6a-5499-4ee2-abbb-6683cc0d03f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "68dbbb4e8fa686c3fd4e9982ade6836edb66976f207553e7ac22df961581c78c"
+  },
+  "nodeGroups": [],
+  "id": "Qdqa9IVAV065pyh0",
+  "tags": []
+}
