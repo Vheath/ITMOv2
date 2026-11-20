@@ -21,7 +21,7 @@
       "name": "Get file's PR info",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        896,
+        1152,
         288
       ],
       "typeVersion": 4.2,
@@ -45,7 +45,7 @@
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "position": [
-        1088,
+        1344,
         240
       ],
       "typeVersion": 1.2,
@@ -80,7 +80,7 @@
       "name": "GitHub Robot1",
       "type": "n8n-nodes-base.github",
       "position": [
-        1360,
+        1616,
         48
       ],
       "webhookId": "4392c85d-31e9-4ebd-8f4d-d556cbb8f3e0",
@@ -120,7 +120,7 @@
       "name": "Add Label to PR1",
       "type": "n8n-nodes-base.github",
       "position": [
-        1584,
+        1840,
         48
       ],
       "webhookId": "70d2db56-965b-4f1f-817c-1fbb311320c0",
@@ -144,7 +144,7 @@
       "name": "Code Review Agent1",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        992,
+        1248,
         48
       ],
       "typeVersion": 1.9
@@ -245,7 +245,7 @@
           "conditions": [
             {
               "id": "cbfc4896-d6e9-448c-b5ec-d00771bb2408",
-              "leftValue": "={{ $json.pr_id }}",
+              "leftValue": "={{ $json.pr_number }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -261,7 +261,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.4,
       "position": [
-        576,
+        608,
         176
       ],
       "id": "d2077dfd-ab62-46ea-962a-21e5897e528b",
@@ -279,7 +279,9 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "pr_number": "={{ $('Comment trigger').first().json.body.issue.number }}"
+            "pr_number": "={{ $('Comment trigger').first().json.body.issue.number }}",
+            "reviewed_deepseek": "={{ $('Merge').first().json.reviewed_deepseek }}",
+            "reviewed_ministral": "={{ $('Merge').first().json.reviewed_ministral }}"
           },
           "matchingColumns": [
             "pr_number"
@@ -294,6 +296,26 @@
               "type": "string",
               "readOnly": false,
               "removed": false
+            },
+            {
+              "id": "reviewed_deepseek",
+              "displayName": "reviewed_deepseek",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed_ministral",
+              "displayName": "reviewed_ministral",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -304,8 +326,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        720,
-        96
+        1040,
+        80
       ],
       "id": "44e5fad6-7617-4007-8164-d6e98ccdd80d",
       "name": "Insert row"
@@ -362,6 +384,29 @@
               },
               "renameOutput": true,
               "outputKey": "other_ai_review"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "c81235de-d408-465a-a403-b57317bffcea",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -379,7 +424,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"model_name\": \"mistralai/ministral-8b-2512\"\n}\n",
+        "jsonOutput": "{\n  \"model_name\": \"mistralai/ministral-8b-2512\",\n  \"reviewed_ministral\": true,\n  \"reviewed_deepseek\": false\n}\n",
         "includeOtherFields": true,
         "options": {}
       },
@@ -396,7 +441,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"model_name\": \"deepseek/deepseek-v4.1-flash-1017\"\n}\n",
+        "jsonOutput": "{\n  \"model_name\": \"deepseek/deepseek-v4.1-flash-1017\",\n  \"reviewed_deepseek\": true,\n  \"reviewed_ministral\": false\n}\n",
         "includeOtherFields": true,
         "options": {}
       },
@@ -432,7 +477,7 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        416,
+        432,
         176
       ],
       "id": "0f6982c3-1b1a-4809-a4da-9e11561222cc",
@@ -449,6 +494,108 @@
       ],
       "id": "1c015f10-3461-4654-8097-0a0e83dc6cbc",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "cbfc4896-d6e9-448c-b5ec-d00771bb2408",
+              "leftValue": "={{ $json.reviewed_deepseek }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        864,
+        272
+      ],
+      "id": "eab5645f-74a8-4176-84fe-543806a406d5",
+      "name": "Reviewed By Deepseek"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "cbfc4896-d6e9-448c-b5ec-d00771bb2408",
+              "leftValue": "={{ $('Merge').first().json.reviewed_deepseek }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        720,
+        384
+      ],
+      "id": "e96515ef-ae2d-4b37-925f-d7ea722d48d9",
+      "name": "Is Deepseek Now"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "cbfc4896-d6e9-448c-b5ec-d00771bb2408",
+              "leftValue": "={{ $json.reviewed_ministral }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        864,
+        512
+      ],
+      "id": "a2a84035-275d-4b5a-9354-5cbf6a41e6a2",
+      "name": "Reviewed By Ministral"
     }
   ],
   "pinData": {},
@@ -530,7 +677,7 @@
         ],
         [
           {
-            "node": "Get file's PR info",
+            "node": "Is Deepseek Now",
             "type": "main",
             "index": 0
           }
@@ -563,7 +710,8 @@
             "type": "main",
             "index": 0
           }
-        ]
+        ],
+        []
       ]
     },
     "deepseek-v4.1-flash": {
@@ -609,6 +757,48 @@
           }
         ]
       ]
+    },
+    "Is Deepseek Now": {
+      "main": [
+        [
+          {
+            "node": "Reviewed By Deepseek",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reviewed By Ministral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewed By Ministral": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewed By Deepseek": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -616,7 +806,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "2bf6105f-a32f-4b47-99cc-6f1e956623e2",
+  "versionId": "cbeb6b5a-e0ef-4656-8bf7-46a0d781342d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "68dbbb4e8fa686c3fd4e9982ade6836edb66976f207553e7ac22df961581c78c"
